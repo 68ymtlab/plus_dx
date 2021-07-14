@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+    <meta charset="utf-8">
+    <title>TEST</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <script src="{{ url_for('static', filename='chart.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='chartjs-adapter-date-fns.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='mouse_drager.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='default.css') }}">
+    <script>
+    	var onoff_key = false;
+        window.onload = function start_hide() {
+            document.getElementById("hide_flag").style.display="none";
+            document.getElementById("hide_link_text").innerHTML = "詳細設定 表示";
+            var ctx = document.getElementById("mychart-scatter").getContext("2d");
+            var myChart = new Chart(ctx, {
+                type: "bubble",
+                data: {
+                    datasets: [{
+                        label: "データ1",
+                        data: [
+                            {% for d in data %}
+                                {x:{{ d[0] }}, y:{{ d[1] }}},
+                            {% endfor %}
+                        ],
+                        backgroundColor: "rgba(0, 0, 255, 0.1)",
+                    }],
+                },
+                options: {
+                    scales: {
+                    y: { min: {{ y_limit_min }}, max: {{ y_limit_max }} },
+                    x: { min: {{ x_limit_min }}, max: {{ x_limit_max }} },
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        function change_hide() {
+	  		if (onoff_key == false) {
+				document.getElementById("hide_flag").style.display="block";
+				document.getElementById("hide_link_text").innerHTML = "詳細設定 非表示";
+				onoff_key = true;
+			} else {
+	    		document.getElementById("hide_flag").style.display="none";
+	    		document.getElementById("hide_link_text").innerHTML = "詳細設定 表示";
+	    		onoff_key = false;
+	    	}
+		}
+    </script>
+    </head>
+    <body>
+        <h4>{{ title }}</h4>
+        <div id="big_frame">
+            <canvas id="mychart-scatter"></canvas>
+            
+        </div>
+        <form action="/" method="POST">
+            <p>X軸 <select name="x_select_option">
+                {% for xsl in x_select_list %}
+                    <option value="{{xsl[0]}}"{{xsl[1]}}>{{xsl[0]}}</option>
+                {% endfor %}
+            </select></p>
+            <p>Y軸 <select name="y_select_option">
+                {% for ysl in y_select_list %}
+                    <option value="{{ysl[0]}}"{{ysl[1]}}>{{ysl[0]}}</option>
+                {% endfor %}
+            </select></p>
+            <input type="submit" value="送信">
+        </form>
+        <b><div onclick="change_hide()" id="hide_link_text">InnerHTMLが機能していません。</div></b>
+        <form name="block_frame" id="block_frame">
+        	<div id="hide_flag">
+	        	<p><b>詳細設定</b></p>
+	        	<ul class="dd-box">
+			        <li>リスト1</li>
+			        <li>リスト2</li>
+			        <li>リスト3</li>
+			        <li>リスト4</li>
+			        <li>リスト5</li>
+			    </ul>
+			</div>
+        </form>
+    </body>
+</html>

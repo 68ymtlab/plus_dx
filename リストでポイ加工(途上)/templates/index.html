@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <title>TEST</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <script src="{{ url_for('static', filename='chart.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='chartjs-adapter-date-fns.bundle.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='default.css') }}">
+    </head>
+    <body>
+        <form action="/" method="POST">
+            <p>X軸 <select name="x_select_option">
+                {% for xsl in x_select_list %}
+                    <option value="{{xsl[0]}}"{{xsl[1]}}>{{xsl[0]}}</option>
+                {% endfor %}
+            </select></p>
+            <p>Y軸 <select name="y_select_option">
+                {% for ysl in y_select_list %}
+                    <option value="{{ysl[0]}}"{{ysl[1]}}>{{ysl[0]}}</option>
+                {% endfor %}
+            </select></p>
+            <input type="submit" value="送信">
+        </form>
+    </body>
+</html>
