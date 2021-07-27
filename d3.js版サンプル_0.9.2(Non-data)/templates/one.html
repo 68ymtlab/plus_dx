@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <!--自動翻訳対策 START-->
+    <meta http-equiv="Content-Language" content="ja">
+	<meta name="google" content="notranslate">
+	<!--自動翻訳対策 END-->
+    <title>{{ student_id }}個人ページ</title>
+    <style>
+        #title{
+        	background-color:#999999;
+        }
+        #data{
+        	background-color:#BBBBBB;
+        }
+        #main_table{
+        	text-align: left;
+        	width: 100%;
+			table-layout: fixed;
+			word-break: break-all;
+			word-wrap: break-all;
+        }
+    </style>
+    </head>
+    <body>
+        <h1>学生番号：{{ student_id }}について</h1>
+        <table id="main_table">
+        {% for d in data %}
+            <tr>
+                <th id="title">{{ d[0] }}</th>
+            </tr>
+            <tr>
+                <td id="data">{{ d[1] }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+        <h3>以下の項目は値が無かったため、掲載しません</h3>
+        {% for b in ban_list %}
+        <table><tr><td>●</td><td>{{ b }}</td></tr></table>
+        {% endfor %}
+    </body>
+</html>

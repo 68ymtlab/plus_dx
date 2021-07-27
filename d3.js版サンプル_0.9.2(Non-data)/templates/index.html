@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="utf-8">
+    <!--自動翻訳対策 START-->
+    <meta http-equiv="Content-Language" content="ja">
+	<meta name="google" content="notranslate">
+	<!--自動翻訳対策 END-->
+    <script type="text/javascript" src="{{ url_for('static', filename='d3.v5.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery-3.6.0.min.js') }}"></script>
+    <style>
+#main_board {
+	display: {{ block_config }};
+}
+    </style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css_tools.css') }}">
+    <title>散布図ページ</title>
+    </head>
+    <body>
+    	<a id="dummy_link" class="dummy"></a><input type="file" id="dummy_input_file" class="dummy"><!--セキュリティ対策で実体を持つ-->
+    	<div id="main_board">
+	        <div id="base_board"></div>
+	        <p>
+	        	<button id="resetButton">初期位置へ戻す</button>&ensp;<button id="download_button">SVG ダウンロード</button>
+	        	<label style="cursor: pointer;"><input type="checkbox" id="checkbox_for_tooltip" checked onchange="tooltip_changer()"><u>注釈を表示する</u></label>
+	        	<label style="cursor: pointer;"><input type="checkbox" id="checkbox_for_legends" checked><u>凡例を表示する</u></label>
+	        </p>
+	    </div>
+        <div id="third_selector_mother">
+	        <form action="/" method="POST">
+	        	<input type="hidden" id="flag_for_download" name="flag_for_download" value="{{ load_flag }}"><!--Lダウンロード判定-->
+	            <p>
+		            X軸 : <select name="x_select_option" id="x_select_option" onChange="format_xy()">
+		                {% for xsl in x_select_list %}<option value="{{xsl[0]}}"{{xsl[1]}}>{{xsl[0]}}</option>{% endfor %}
+		            </select>&ensp;&ensp;
+		            Y軸 : <select name="y_select_option" id="y_select_option" onChange="format_xy()">
+		                {% for ysl in y_select_list %}<option value="{{ysl[0]}}"{{ysl[1]}}>{{ysl[0]}}</option>{% endfor %}
+		            </select>&ensp;&ensp;
+		            点のサイズ : <input name="plot_size_select" type="number" max="1000" min="0" value="1" step="0.001">
+	            </p>
+	            <input type="submit" value="送信" id="submit_button">
+	            <hr>
+	            <!--(1): {{ first_code_list | join(', ')}}-->
+	            <!--(2): {{ second_code_list | join(', ')}}-->
+	            {% set first_code_max = first_code_list | max %}{% set first_code_min = first_code_list | min %}{% set second_code_max = second_code_list | max %}
+	            <!--{{ first_code_list | max }}--><!--{{ second_code_list | max }}--><!--{{ second_code_list | min }}-->
+	            <div id="layer_config_switch" class="switch" onClick="display_div(this.id, 'third_selector')">
+	            	レイヤー設定
+	            </div>
+	            <div id="third_selector">
+	        		{% for first_code in first_code_list %}
+					<div class="third_selector_one">
+						<table>
+							<tr>
+								<td>
+									第{{ first_code | num_right_p1 | safe }}レイヤー：
+								</td>
+								<td>
+								    <select class="first_select_set" name="first_select_set_{{ first_code | safe }}" id="first_select_set_{{ first_code | safe }}" onChange="first_select_change({{ first_code | safe }})">
+								        <option value="non_select" selected>無効</option>
+								        <option value="nonal_select">条件設定</option>
+								        <option value="sql_select">SQL文入力 (上級者向け)</option>
+								    </select>
+								</td>
+								<td>
+									{% if first_code_min == first_code %}(最上位レイヤー){% endif %}{% if first_code_max == first_code %}(最下位レイヤー){% endif %}
+								</td>
+							</tr>
+						</table>
+					    <div id="nomal_control_{{ first_code | safe }}" class="nomal_control"><!--通常条件設定-->
+					    	{% for second_code in second_code_list %}
+					        <div id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}"><!--複数指定-->
+					            <!--プルダウンメニューでタイトルリストから選択-->
+					            <select class="second_select_set" name="second_select_set_{{ first_code | safe }}_{{ second_code | safe }}" id="second_select_set_{{ first_code | safe }}_{{ second_code | safe }}" onChange="second_select_change({{ first_code | safe }}, {{ second_code | safe }})">
+					                {% for rsl in r_select_list %}<option value="{{rsl[1]}},{{rsl[0]}}">{{rsl[0]}}</option>{% endfor %}
+					            </select>
+					            <!--仮メニューを上に整備-->
+					            <div id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_number_div"><!--数値用-->
+					                <select name="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_number_mode" id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_number_mode" onChange="null_ban_input_number({{ first_code | safe }}, {{ second_code | safe }}, 'number')">
+					                    <option value="x_equal">＝</option>
+					                    <option value="x_non_equal">&ne;</option>
+					                    <option value="x_upper_y">&gt;</option>
+					                    <option value="x_upper_equal_y">≧</option>
+					                    <option value="x_lower_y">&lt;</option>
+					                    <option value="x_lower_equal_y">≦</option>
+					                    <option value="x_is_null">IS NULL</option>
+					                    <option value="x_is_not_null">IS NOT NULL</option>
+					                </select>
+					                <input type="number" name="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_number" step="0.001" id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_number">
+					            </div>
+					            <div id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_text_div"><!--文字用-->
+					                <select name="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_text_mode" id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_text_mode" onChange="null_ban_input_number({{ first_code | safe }}, {{ second_code | safe }}, 'text')">
+					                    <option value="x_equal">完全一致</option>
+					                    <option value="x_like_yo">前方一致</option>
+					                    <option value="x_like_oy">後方一致</option>
+					                    <option value="x_like_oyo">部分一致</option>
+					                    <option value="x_non_equal">否定</option>
+					                    <option value="x_is_null">IS NULL</option>
+					                    <option value="x_is_not_null">IS NOT NULL</option>
+					                </select>
+					                <input type="text" name="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_text" id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_text">
+					            </div>
+								優先度：
+								<select class="priority" name="priority_{{ first_code | safe }}_{{ second_code | safe }}_select" id="priority_{{ first_code | safe }}_{{ second_code | safe }}_select" onChange="priority_select_change({{ first_code | safe }}, {{ second_code | safe }})">
+							        <option value="max">最高</option>
+							        <option value="high">高</option>
+							        <option value="default" selected>標準</option>
+							        <option value="low">低</option>
+							        <option value="min">最低</option>
+							    </select>
+					        </div>
+					        {% if second_code < second_code_max %}
+					        <div id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_connecter"> <!--0個目の-->
+					            <select id="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_connecter_select" name="nomal_control_{{ first_code | safe }}_{{ second_code | safe }}_connecter_select" onChange="connecter_select_change({{ first_code | safe }}, {{ second_code | safe }}, {{ second_code_list | max }})">
+					                <option value="end" selected></option>
+					                <option value="or">OR</option>
+					                <option value="and">AND</option>
+					            </select>
+					    	</div>
+					    	{% endif %}
+					    	{% endfor %}
+					    </div>
+					    <div id="sql_control_{{ first_code | safe }}"><!--SQL入力設定-->
+					    	<div class="sql_format_xy_output"></div>
+					        <textarea name="sql_input_area_{{ first_code | safe }}" wrap="soft" class="sql_input_area"></textarea>
+					    </div>
+					    <div id="color_control_{{ first_code | safe }}"><!--色選択-->
+					        色設定: <input type="color" name="color_input_{{ first_code | safe }}"> 透過率設定: <input name="alpha_input_{{ first_code | safe }}" type="number" max="255" min="0" value="255">
+					        タイトル: <input type="text" value="タイトル{{ first_code | num_right_p1 | safe }}" name="color_title_{{ first_code | safe }}" maxlength="40">
+					    </div>
+					</div>
+	        		{% endfor %}
+	        		※ 全てのレイヤーが無効である場合は青色の点で条件による絞り込み無しの散布図が描画されます
+	            </div>
+        	</form>
+        	<button id="config_save">選択を書き込み・ダウンロード</button>&ensp;<button id="config_load">選択を読み込み</button>
+        </div>
+        <div id="log_switch" class="switch" onClick="display_div(this.id, 'log_board')">
+            	ログ閲覧
+            </div>
+        <div id="log_board">
+        	<table class="log_table">
+        		<tr><th>請求文</th><th class="number_table_parts">取得数</th></tr>
+        		{% for log_one in log_data %}<tr style="background-color: {{ log_one[1] }}"><td>{{ log_one[0] }}</td><td class="number_table_parts" id="number_table_parts_core">{{ log_one[2] }}</td></tr>{% endfor %}
+        	</table>
+        </div>
+        <hr>
+        <b><a href="./parameter" target="_blank">パラメータ一覧</a></b>
+        <script type="text/javascript" src="{{ url_for('static', filename='func_tools.js') }}"></script>
+        <script>
+display_div("log_switch", "log_board", "close"); //このタイミング
+// 1. データ
+var dataset = [
+    {% for ds in data_set %}{"x":{{ ds.x }}, "y":{{ ds.y }}, "link_address":"{{ ds.link_address }}", "link_text":"{{ ds.link_text }}", "plot_color":"{{ ds.plot_color }}"},{% endfor %}
+];
+
+var titleset = [
+	{% for log_one in log_data %}{% if log_one[3] is not none %}["{{ log_one[3] }}", "{{ log_one[4] }}"], {% endif %}{% endfor %}
+]; //凡例用 色、タイトル
+
+var width = 850; // グラフの横幅
+var height = 450; // グラフの縦幅
+var margin = { "top": 20, "bottom": 80, "right": 250, "left": 80 };
+
+// SVGの設定
+var svg_m = d3.select("#base_board")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+var svg = svg_m.append("svg");
+
+var backboard = svg.append("rect")
+			.attr("x", margin["left"])
+			.attr("y", margin["top"])
+			.attr("width", width - margin["right"] - margin["left"])
+			.attr("height", height - margin["top"] -  margin["bottom"])
+			.attr("fill", "#FcFcFcFF");
+
+//凡例の設定
+var legend = svg_m.selectAll(".legends")　//凡例の領域作成
+	.data(titleset)
+	.enter()
+    .append('g')
+	.attr("class", "legends")
+	.attr("transform", function (d, i) {
+        return "translate(0," + i * 20 + ")" //各凡例をy方向に20px間隔で移動
+     });
+
+legend.append("rect") //凡例の色付け四角
+	.attr("x", width - margin["right"] + 5)
+	.attr("y", margin["top"] - 5)
+	.attr("width", 10)
+	.attr("height", 10)
+	.style("fill", function (d) { return d[0].slice(0, 7); }) // 色付け
+
+legend.append('text')  //凡例の文言
+	.attr("x", width - margin["right"] + 20)
+	.attr("y", margin["top"] + 2.5)
+    .text(function (d) { return d[1]; })
+	.attr("class", "textselected")
+	.style("text-anchor", "start")
+	.style("font-size", 10)
+	.style("font-weight", "bold");
+
+// x,y軸スケールの設定
+var xScale = d3.scaleLinear()
+               .domain([d3.min(dataset, function(d) { return d.x; }), d3.max(dataset, function(d) { return d.x; })])
+               .range([margin.left, width - margin.right]);
+
+var yScale = d3.scaleLinear()
+               .domain([d3.min(dataset, function(d) { return d.y; }), d3.max(dataset, function(d) { return d.y; })])
+               .range([height - margin.bottom, margin.top]);
+
+var tooltip_lock_flag = false;
+var tooltip = d3.select("#base_board")
+                .append("div")
+                .attr("class", "tooltip")
+                .on("click", function() {
+                   tooltip_lock_flag = true;
+                 });
+
+var cliper = svg .append("clipPath")
+    .attr("id", "clip-limit")
+    .append("rect")
+    .attr("x", margin.left)
+    .attr("y", margin.top)
+    .attr("width", width - margin.right - margin.left)
+    .attr("height", height - margin.bottom - margin.top); //背景board
+
+// 散布図の描画
+var view = svg.append("g")
+              .selectAll("circle")
+              .data(dataset)
+              .enter()
+              .append("circle")
+              .attr("cx", function(d) { return xScale(d.x); })
+              .attr("cy", function(d) { return yScale(d.y); })
+              .attr("fill", function(d) { return d.plot_color; })
+              .attr("r", "{{ plot_size }}px")
+              .attr("clip-path", "url(#clip-limit)") //切り抜き指定
+              .on("mouseover", function(d) {
+                   tooltip_lock_flag = false;
+                   tooltip.style("visibility", "visible").html(
+                   "<table><tr><td>{{ x_title }}</td><td>" + d.x + "</td></tr><tr><td>{{ y_title }}</td><td>" + d.y + "</td></tr><tr><td>Link</td><td><a href='" + 
+                   d.link_address + "' target='_blank'>" + d.link_text + "</a></td></tr></table>"
+                   );
+               })
+               .on("mousemove", function(d) {
+                   if(!tooltip_lock_flag) {
+                       tooltip.style("top", (d3.event.pageY - 20) + "px").style("left", (d3.event.pageX + 3) + "px");
+                   }
+               })
+               .on("mouseout", function(d) {
+                   if(!tooltip_lock_flag) {
+                       tooltip.style("visibility", "hidden");
+                   }
+               })
+               .on("click", function(d) { 
+                   tooltip.style("visibility", "visible");
+                   tooltip_lock_flag = true;
+               })
+
+delete dataset;
+
+// 軸の表示
+var axisx = d3.axisBottom(xScale).ticks(5);
+var axisy = d3.axisLeft(yScale).ticks(5);
+
+gX = svg.append("g")
+  .attr("transform", "translate(" + 0 + "," + (height - margin.bottom) + ")")
+  .call(axisx)
+
+gY = svg.append("g")
+  .attr("transform", "translate(" + margin.left + "," + 0 + ")")
+  .call(axisy)
+
+svg.append("g")
+  .attr("transform", "translate(" + 0 + "," + (height - margin.bottom) + ")")
+  .append("text")
+  .attr("fill", "black")
+  .attr("x", (width - margin.left - margin.right) / 2 + margin.left)
+  .attr("y", 35)
+  .attr("text-anchor", "middle")
+  .attr("font-size", "10pt")
+  .attr("font-weight", "middle")
+  .text("{{ x_title }}");
+
+svg.append("g")
+  .attr("transform", "translate(" + margin.left + "," + 0 + ")")
+  .append("text")
+  .attr("fill", "black")
+  .attr("text-anchor", "middle")
+  .attr("x", -(height - margin.top - margin.bottom) / 2 - margin.top)
+  .attr("y", -35)
+  .attr("dy", -30)
+  .attr("transform", "rotate(-90)")
+  .attr("font-weight", "middle")
+  .attr("font-size", "10pt")
+  .text("{{ y_title }}");
+
+d3.select("#resetButton").on("click", resetted); //リセットキークリックでボタンで無くとも良いことに留意
+d3.select("#checkbox_for_legends").on("click", legends_on_off); //凡例の表示・非表示
+
+//var zoom = d3.zoom().scaleExtent([1, 50]).translateExtent([[-100, -100],[width + 100, height + 100]]).on("zoom", zoomed);
+var zoom = d3.zoom()
+    .scaleExtent([-Infinity, Infinity])
+    //.scaleExtent([1, Infinity])
+    .translateExtent([[-Infinity, -Infinity], [Infinity, Infinity]])
+    .on("zoom", zoomed)
+
+svg.call(zoom); //無限ZOOM&移動許容
+
+function zoomed() {
+    view.attr("transform", d3.event.transform);
+    gX.call(axisx.scale(d3.event.transform.rescaleX(xScale)));
+    gY.call(axisy.scale(d3.event.transform.rescaleY(yScale)));
+    cliper.attr("transform", "scale(" + 1/d3.event.transform.k + ")")
+          .attr("x", margin.left - d3.event.transform.x) 
+          .attr("y", margin.top - d3.event.transform.y); //再clip系
+}
+
+function resetted() {
+    svg.transition()
+        .duration(10)
+        .call(zoom.transform, d3.zoomIdentity);
+} //durationはリセットの際の移動時間
+
+function legends_on_off() {
+	if (document.getElementById("checkbox_for_legends").checked) {
+		legend.style("visibility", "visible");
+	} else { 
+		legend.style("visibility", "hidden");
+	}
+}
+
+var config_data = {{ return_input_dict | default({}) | tojson }};
+var ja_na_convert_dict = {{ ja_na_convert_dict | default({}) | tojson }};
+
+function onload_setting() {
+	document.getElementById("third_selector_mother").style.display = "block"; //目隠し解除
+    return_setter(); //再編
+    for(let i=0; i<{{ first_code_list | length }}; i++) {
+    	 for(let ii=0; ii<{{ second_code_list | max }}; ii++) {
+        	if (connecter_select_change(i, ii, {{ second_code_list | max }})) {
+        		break;
+        	}
+        }
+    }
+    for(let i=0; i<{{ first_code_list | length }}; i++) {
+    	//console.log("first_select_change(" + i + ")");
+        first_select_change(i);
+        for(let ii=0; ii<{{ second_code_list | length }}; ii++) {
+        	//console.log("second_select_change(" + i + ", " + ii + ")");
+            second_select_change(i, ii);
+            null_ban_input_number(i, ii, "text");
+            null_ban_input_number(i, ii, "number");
+        }
+    }
+}
+
+window.onload = function(){
+    console.log("onLoad");
+    legends_on_off()
+    onload_setting();
+    display_div("layer_config_switch", "third_selector", "close");
+    format_xy();
+    console.log("LoadFlag: " + load_flag.value ); ///////////////////////////////////////////////////////
+    if (load_flag.value == 1) {
+    	load_flag.value = 0;
+    	config_saver_after_load();
+    } else {
+    	load_flag.value = 0; //一応
+    }
+}
+        </script>
+    </body>
+</html>

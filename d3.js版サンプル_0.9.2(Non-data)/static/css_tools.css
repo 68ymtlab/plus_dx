@@ -1,0 +1,133 @@
+@charset "utf-8";
+/* CSS設定 */
+#third_selector_mother{
+  display: none;
+}
+#third_selector{
+  width: 50vw;
+  min-width: 750px;
+  border:solid 2px #dddddd;
+  background-color: #e9e9e9;
+}
+svg{
+  font: 10px sans-serif;
+  background-color: #FFFFFF;
+  text-align: right;
+  padding: 3px;
+  margin: 1px;
+  color: #333333;
+}
+.tooltip {
+  position: absolute;
+  text-align: center;
+  width: auto;
+  height: auto;
+  padding: 5px;
+  font: 12px;
+  background: white;
+  -webkit-box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+  -moz-box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+  visibility: hidden;
+  display: inline-block;
+}
+#base_board {
+    width: 860px;
+    height: 460px;
+    border-style: solid;
+    border-color: #999999;
+    background-color: #FFFFFF;
+}
+.click_items {
+    cursor : pointer;
+}
+.third_selector_one{
+    margin-left: auto;
+    margin-right: auto;
+  	width: 49vw;
+  	min-width: 749px;
+  	border:solid 2px #dddddd;
+  	background-color: #cccccc;
+}
+.nomal_control{
+    margin-left: auto;
+    margin-right: auto;
+    width: 48vw;
+  	min-width: 748px;
+  	border:solid 2px #dddddd;
+  	background-color: #bbbbbb;
+}
+.sql_input_area{
+	margin-left: auto;
+	margin-right: auto;
+	width: 90%;
+	max-width: 90%;
+  	min-width: 740px;
+}
+.dummy{
+	display: none;
+}
+#log_board{
+	font-size: small;
+    width: 50vw;
+    min-width: 750px;
+    border:solid 2px #dddddd;
+    background-color: #efefef;
+}
+.log_table{
+	width: 48vw;
+	max-width: 48vw;
+	min-width: 748px;
+}
+th{
+	background-color: #a0a0a0;
+}
+table{
+	table-layout: fixed;
+	word-break: break-all;
+	word-wrap: break-all;
+}
+.number_table_parts{
+	width: 6em;
+}
+#number_table_parts_core{
+	text-align: right;
+	padding-right: 12px;
+}
+.switch{
+	width: 50vw;
+	min-width: 750px;
+	border:solid 2px #dddddd;
+	background-color: #e9e9e9;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+}
+.sql_format_xy_output{
+	font-size: small;
+	word-break: break-all;
+	word-wrap: break-all;
+}
+#submit_button{
+	display       : inline-block;
+	font-size     : 16pt;        /* 文字サイズ */
+	text-align    : center;      /* 文字位置   */
+	cursor        : pointer;     /* カーソル   */
+	padding       : 2px 410px;    /* 余白       */
+	background    : #bfbfbf;     /* 背景色     */
+	color         : #444444;     /* 文字色     */
+	line-height   : 1.2em;         /* 1行の高さ  */
+	transition    : .3s;         /* なめらか変化 */
+	border        : 2px solid #bfbfbf;    /* 枠の指定 */
+}
+#submit_button:hover {
+	color         : #bfbfbf;     /* 背景色     */
+	background    : #444444;     /* 文字色     */
+}
+.legends { /*凡例について*/
+	/*visibility: hidden;*/
+	visibility: visible;
+}
+select{
+	overflow-y: scroll;
+}

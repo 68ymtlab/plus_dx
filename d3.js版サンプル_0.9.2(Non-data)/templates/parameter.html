@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <!--自動翻訳対策 START-->
+    <meta http-equiv="Content-Language" content="ja">
+	<meta name="google" content="notranslate">
+	<!--自動翻訳対策 END-->
+    <meta charset="utf-8">
+    <title>パラメータについて</title>
+    <style>
+        #title{
+        	background-color:#999999;
+        }
+        #data{
+        	background-color:#BBBBBB;
+        }
+        #main_table{
+        	text-align: left;
+        	width: 100%;
+        	/*
+			table-layout: fixed;
+			word-break: break-all;
+			word-wrap: break-all;
+			*/
+        }
+        .chip{
+        	display: inline-block; /*\n対策*/
+        }
+    </style>
+    </head>
+    <body>
+        <h1>パラメータについて (テーブル : {{ table_name }})</h1>
+        <table id="main_table">
+        {% for key in data %}
+        {% set max_number = data[key] | length %}
+        {% if limit >= max_number %}
+            <tr>
+                <th id="title">{{ key }}</th>
+            </tr>
+            <tr>
+                <td id="data">{% for chip in data[key] | sort %}<span class="chip">{{ chip }}</span>, {% endfor %}</td>
+            </tr>
+        {% endif %}
+        {% endfor %}
+        </table>
+        <h3>※ {{ limit }}よりも多いパラメータを持つ項目は混乱防止のため、掲載しません</h3>
+    </body>
+</html>
